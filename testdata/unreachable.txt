@@ -1,0 +1,7 @@
+S -> A B C
+A -> a B
+B -> b C
+C -> c
+D -> unreachable
+D -> E
+E -> unreachable

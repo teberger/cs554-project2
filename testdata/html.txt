@@ -1,0 +1,50 @@
+HTML -> <html> HEAD BODY </html>
+HEAD -> <head> TITLE </head>
+TITLE -> <title> TEXT </title>
+BODY -> <body> TAGS </body>
+TAGS -> TAGS TAG
+TAGS -> TAG
+TAG -> <!-- TEXT -->
+TAG -> <p> TEXT </p>
+TAG -> <h1> TEXT </h1>
+TAG -> <h2> TEXT </h2>
+TAG -> <h3> TEXT </h3>
+TAG -> <h4> TEXT </h4>
+TAG -> <h5> TEXT </h5>
+TAG -> <h6> TEXT </h6>
+TAG -> <img_src=" TEXT "/>
+TAG -> <a_href=" TEXT "/>
+TAG -> <ul> ITEMS </ul>
+TAG -> <ol> ITEMS </ol>
+ITEMS -> ITEMS ITEM
+ITEMS -> ITEM
+ITEM -> <li> TEXT </li>
+TEXT -> TEXT CHAR
+TEXT -> CHAR
+CHAR -> a
+CHAR -> b
+CHAR -> c
+CHAR -> d
+CHAR -> e
+CHAR -> f
+CHAR -> g
+CHAR -> h
+CHAR -> i
+CHAR -> j
+CHAR -> k
+CHAR -> l
+CHAR -> m
+CHAR -> n
+CHAR -> o
+CHAR -> p
+CHAR -> q
+CHAR -> r
+CHAR -> s
+CHAR -> t
+CHAR -> u
+CHAR -> v
+CHAR -> w
+CHAR -> x
+CHAR -> y
+CHAR -> z
+CHAR -> _

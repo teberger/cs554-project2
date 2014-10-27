@@ -1,0 +1,13 @@
+S -> A
+S -> nongenerating X
+A -> aaa B C
+A -> aaa B
+A ->
+B -> ab C
+B -> bBb
+B ->
+C -> nongenerating cccc C
+D -> unreachable F
+F -> unreachable aa A
+G -> unreachable and none generating G
+X -> nongenerating X
