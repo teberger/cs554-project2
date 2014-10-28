@@ -50,7 +50,7 @@ def first(grammar):
                 else:
                     new_set = set()
                     new_set = first_table[rhs[0]].copy()
-                    new_set.remove('')
+                    #new_set.remove([])
                     if(len(rhs) > 1):
                         if(rhs[1] not in non_terminal): new_set.add(rhs[1])
                         else: new_set.union(first_table[rhs[1]])
@@ -61,7 +61,7 @@ def first(grammar):
 
     return first_table
 
-x = Grammar('./testdata/unreachable.txt')
+x = Grammar('./testdata/test.txt')
 
 print x.productions
 print "=========================="
