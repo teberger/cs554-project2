@@ -82,13 +82,14 @@ class Grammar:
                 self.addProduction(production.lhs, production.rhs)
 
     def addProduction(self, lhs, rhs):
-        """
-        Adds a production to the grammar. If the production's LHS already exists
-        in the dictionary, the RHS is appended to the value list. If the LHS is
-        not in the dictionary, it is added, and the RHS is added as a list.
+        """Adds a production to the grammar. If the production's LHS already
+        exists in the dictionary, the RHS is appended to the value
+        list. If the LHS is not in the dictionary, it is added, and
+        the RHS is added as a list.
 
         :param str lhs: Left-hand-side of the production.
         :param list[str] rhs: Right-hand-side of the production.
+
         """
         if lhs in self.productions:
             self.productions[lhs].append(rhs)
@@ -99,19 +100,20 @@ class Grammar:
 
 
 def Generating(productions):
-    """
-    Returns a list of generating rules from a list of productions.
+    """Returns a list of generating rules from a list of productions.
 
-    This algorithm first identifies all initially-productive rules:
-        - Rules with only terminals on the right-hand-side.
-        - Rules with the empty string (epsilon) on the right-hand-side.
-    Productions are then marked productive if their right-hand-side consists
-    of only terminals and non-terminals marked as productive. This process
-    is repeated until no new results are yielded. Any productions not marked
-    as productive at this point are unproductive.
+    This algorithm first identifies all initially-productive rules: -
+    Rules with only terminals on the right-hand-side.  - Rules with
+    the empty string (epsilon) on the right-hand-side.  Productions
+    are then marked productive if their right-hand-side consists of
+    only terminals and non-terminals marked as productive. This
+    process is repeated until no new results are yielded. Any
+    productions not marked as productive at this point are
+    unproductive.
 
     :param list[Production] productions: List of productions to examine.
     :rtype: list[Production]
+
     """
     nonTerms = set(production.lhs for production in productions)
     productive = set()
@@ -129,7 +131,8 @@ def Generating(productions):
                 if not production.rhs:
                     productive.add(production.lhs)
 
-                # If every symbol in the RHS is productive, lhs is productive.
+                # If every symbol in the RHS is productive, lhs is
+                # productive.
                 else:
                     isProductive = True
                     for symbol in production.rhs:
@@ -140,8 +143,9 @@ def Generating(productions):
                     if isProductive:
                         productive.add(production.lhs)
 
-    # Build list of all productions with generating left-hand-sides, but remove
-    # any that have non-generating variables in their right-hand-side.
+    # Build list of all productions with generating left-hand-sides,
+    # but remove any that have non-generating variables in their
+    # right-hand-side.
     unproductive = nonTerms - productive
     return [p for p in productions if
             p.lhs in productive
