@@ -16,10 +16,12 @@ def nullable(grammar):
                             nullable_table.add(p)
                             modified = True
                     else:
+                        is_nullable = True
                         for element in rhs:
-                            if(element in nullable_table):
-                                nullable_table.add(p)
-                                modified = True
+                            if(element not in nullable_table): is_nullable = False
+                        if is_nullable:
+                            nullable_table.add(p)
+                            modified = True
     return nullable_table
 
 def first(grammar):
