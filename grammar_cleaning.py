@@ -1,11 +1,20 @@
 
 from cfg import Grammar
 
-
 def nullable(grammar):
     '''
     Returns a list of the all non-terminals that are nullable
-    in the given grammar
+    in the given grammar. A nullable non-terminal is calculated
+    as a closure using the following rules:
+      
+      nullable(A -> ε) -> True
+      nullable(A -> a) -> False
+      nullable(A -> αβ) -> nullable(α) AND nullable(β)
+      nullable(A -> A1 | A2 | ... | AN) -> nullable(A1) OR .. OR nullable(A_n)
+    
+    :param Grammar grammar: the set of productions to use and
+                            wrapped in the Grammar object
+    :return a set of all non-terminals that can be nullable
     '''
     
     nullable = set()
@@ -43,6 +52,24 @@ def nullable(grammar):
     return nullable
 
 def first(grammar):
+    '''A first set calucation for a grammar returns a dictionary of all
+    the first terminals that can proceed the rest of a parse given a
+    non-termial symbol. First is a closure that is calculated as
+    follows:
+    
+      first(ε) -> ϕ
+      first(A -> a) -> { a } 
+                        
+      first(A -> αβ) -> { first(α) U first(β),   if nullable(α)
+                        { first(α),              otherwise
+      first(A -> A1 | A2 | ... | AN) -> first(A1) U first(A2 U ... U first(AN)
+
+    :param Grammar grammar: the set of productions to use wrapped in a 
+                            Grammar object
+    :return dict{Non-Terminal : set(Terminal)}: a table of all terminals that
+                                                could come from a given
+                                                non-terminal
+    '''
     productions = grammar.productions
     #define the nullables
     nullable_non_terms = nullable(grammar)
@@ -104,6 +131,32 @@ def first(grammar):
         prev_table = new_table.copy()
 
     return prev_table
+
+def follows(grammar):
+    '''Calculates all terminals that can follow a given non terminal.
+    Follows is a closure calculated by the following rules:
+    
+      given [M -> αNβ] -> follows(N) = follows(N) U first(β)
+                          if nullable(β) then
+                            follows(M) = follows(M) U follows(N)
+      given [M -> αNβ1...αNβ2...αNβX] -> follows(N) = first(β1) U first(β2) U ... U first(βX)
+                                         if nullable(βi) then
+                                           follows(M) = follows(M) U follows(N)
+    
+    :param Grammar grammar: the set of productions to use as a Grammar
+                            object
+    :return dict{non-Terminal : set(terminals)}: the set of terminal characters
+                                                 that can follow any given
+                                                 non-terminal
+    '''
+    nullable_non_terms(grammar)
+    first_table = first(grammar)
+
+    #initalize the table to contain only the empty sets
+    prev_table = {non_term : set() for non_term in grammar.nonTerminals}
+    
+    
+    
     
 if __name__ == '__main__':
     x = Grammar('./testdata/html.txt')
