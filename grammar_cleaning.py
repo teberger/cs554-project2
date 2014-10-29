@@ -6,9 +6,9 @@ def nullable(grammar):
     in the given grammar. A nullable non-terminal is calculated
     as a closure using the following rules:
       
-      nullable(A -> \Epsilon) -> True
+      nullable(A -> Epsilon) -> True
       nullable(A -> a) -> False
-      nullable(A -> \Alpha\Beta) -> nullable() AND nullable()
+      nullable(A -> AB) -> nullable(A) AND nullable(B)
       nullable(A -> A1 | A2 | ... | AN) -> nullable(A1) OR .. OR nullable(A_n)
     
     :param Grammar grammar: the set of productions to use and
@@ -57,11 +57,11 @@ def first(grammar):
     non-termial symbol. First is a closure that is calculated as
     follows:
     
-      first(\Epsilon) -> EmptySet
+      first(Epsilon) -> EmptySet
       first(A -> a) -> { a } 
                         
-      first(A -> \Alpha \Beta) -> { first(\Alpha) U first( \Beta),   if nullable(\Alpha)
-                        { first(\Alpha),              otherwise
+      first(A -> A B) -> { first(A) U first( B),   if nullable(A)
+                        { first(A),              otherwise
       first(A -> A1 | A2 | ... | AN) -> first(A1) U first(A2 U ... U first(AN)
 
     :param Grammar grammar: the set of productions to use wrapped in a 
@@ -136,13 +136,13 @@ def follows(grammar):
     '''Calculates all terminals that can follow a given non terminal.
     Follows is a closure calculated by the following rules:
     
-      given [M -> \AlphaN \Beta] -> follows(N) = follows(N) U first( \Beta)
-                          if nullable( \Beta) then
+      given [M -> AN B] -> follows(N) = follows(N) U first( B)
+                          if nullable( B) then
                             follows(M) = follows(M) U follows(N)
-      given [M -> \Alpha N \Beta1...\Alpha N \Beta2...\Alpha N \BetaX]
-                   -> follows(N) = first(\Beta1) U first(\Beta2) U ... 
-                                   U first(\BetaX)
-                                         if nullable( \Beta_i) then
+      given [M -> A N B1...A N B2...A N BX]
+                   -> follows(N) = first(B1) U first(B2) U ... 
+                                   U first(BX)
+                                         if nullable( B_i) then
                                            follows(M) = follows(M) U follows(N)
     
     :param Grammar grammar: the set of productions to use as a Grammar
