@@ -6,7 +6,8 @@ A ->
 B -> ab C
 B -> bBb
 B ->
-C -> nongenerating cccc C
+C -> B nongenerating cccc C
+C -> A B A B B B A
 D -> unreachable F
 F -> unreachable aa A
 G -> unreachable and none generating G

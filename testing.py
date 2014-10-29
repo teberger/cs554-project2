@@ -18,7 +18,8 @@ def nullable(grammar):
                     else:
                         is_nullable = True
                         for element in rhs:
-                            if(element not in nullable_table): is_nullable = False
+                            if(element not in nullable_table): 
+                                is_nullable = False
                         if is_nullable:
                             nullable_table.add(p)
                             modified = True
@@ -63,16 +64,15 @@ def first(grammar):
 
     return first_table
 
-x = Grammar('./testdata/test.txt')
-
+x = Grammar('./testdata/unhygienic.txt')
+'''
 print x.productions
 print "=========================="
-'''
+
 print x.nonTerminals
 print "=========================="
 print x.start
 '''
-
 print nullable(x)
 print first(x)
 
