@@ -1,6 +1,4 @@
-
 from cfg import Grammar
-
 
 def nullable(grammar):
     '''
@@ -8,9 +6,9 @@ def nullable(grammar):
     in the given grammar. A nullable non-terminal is calculated
     as a closure using the following rules:
       
-      nullable(A -> ε) -> True
+      nullable(A -> \Epsilon) -> True
       nullable(A -> a) -> False
-      nullable(A -> αβ) -> nullable(α) AND nullable(β)
+      nullable(A -> \Alpha\Beta) -> nullable() AND nullable()
       nullable(A -> A1 | A2 | ... | AN) -> nullable(A1) OR .. OR nullable(A_n)
     
     :param Grammar grammar: the set of productions to use and
@@ -59,11 +57,11 @@ def first(grammar):
     non-termial symbol. First is a closure that is calculated as
     follows:
     
-      first(ε) -> ϕ
+      first(\Epsilon) -> EmptySet
       first(A -> a) -> { a } 
                         
-      first(A -> αβ) -> { first(α) U first(β),   if nullable(α)
-                        { first(α),              otherwise
+      first(A -> \Alpha \Beta) -> { first(\Alpha) U first( \Beta),   if nullable(\Alpha)
+                        { first(\Alpha),              otherwise
       first(A -> A1 | A2 | ... | AN) -> first(A1) U first(A2 U ... U first(AN)
 
     :param Grammar grammar: the set of productions to use wrapped in a 
@@ -138,11 +136,13 @@ def follows(grammar):
     '''Calculates all terminals that can follow a given non terminal.
     Follows is a closure calculated by the following rules:
     
-      given [M -> αNβ] -> follows(N) = follows(N) U first(β)
-                          if nullable(β) then
+      given [M -> \AlphaN \Beta] -> follows(N) = follows(N) U first( \Beta)
+                          if nullable( \Beta) then
                             follows(M) = follows(M) U follows(N)
-      given [M -> αNβ1...αNβ2...αNβX] -> follows(N) = first(β1) U first(β2) U ... U first(βX)
-                                         if nullable(βi) then
+      given [M -> \Alpha N \Beta1...\Alpha N \Beta2...\Alpha N \BetaX]
+                   -> follows(N) = first(\Beta1) U first(\Beta2) U ... 
+                                   U first(\BetaX)
+                                         if nullable( \Beta_i) then
                                            follows(M) = follows(M) U follows(N)
     
     :param Grammar grammar: the set of productions to use as a Grammar
@@ -155,7 +155,24 @@ def follows(grammar):
     first_table = first(grammar)
 
     #initalize the table to contain only the empty sets
-    prev_table = {non_term : set() for non_term in grammar.nonTerminals}
+    follow_table = {non_term : set() for non_term in grammar.nonTerminals}
+    #add the EOF symbol for the start state
+    follow_table[grammar.start].add('$')
+
+    has_changed = True
+    #iterate until all sets have not changed
+    while has_changed:
+        has_changed = False
+
+        #construct the new table for us to put additions to 
+        new_table = follow_table.copy()
+        
+        for non_term in grammar.nonTerminals:
+            pass
+
+        follow_table = new_table.copy()
+    
+    return follow_table
     
     
 if __name__ == '__main__':
@@ -163,4 +180,8 @@ if __name__ == '__main__':
     first_dict = first(x)
     for i in first_dict:
         print i, ':', first_dict[i]
+
+    
+
+
     
