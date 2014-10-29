@@ -14,7 +14,6 @@ def nullable(grammar):
     :param Grammar grammar: the set of productions to use and
                             wrapped in the Grammar object
     :return a set of all non-terminals that can be nullable
-
     '''
     
     nullable = set()
@@ -141,9 +140,9 @@ def follows(grammar):
                             follows(M) = follows(M) U follows(N)
       given [M -> A N B1...A N B2...A N BX]
                    -> follows(N) = first(B1) U first(B2) U ... 
-                                   U first(BX)
-                                         if nullable( B_i) then
-                                           follows(M) = follows(M) U follows(N)
+                                      U first(BX)
+                                   if nullable( B_i) then
+                                     follows(M) = follows(M) U follows(N)
     
     :param Grammar grammar: the set of productions to use as a Grammar
                             object
@@ -173,7 +172,6 @@ def follows(grammar):
         follow_table = new_table.copy()
     
     return follow_table
-    
     
 if __name__ == '__main__':
     x = Grammar('./testdata/html.txt')
