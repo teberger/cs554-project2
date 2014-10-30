@@ -150,8 +150,9 @@ def follows(grammar):
                                                  that can follow any given
                                                  non-terminal
     '''
-    nullable_non_terms(grammar)
+    nullable_non_terms = nullable(grammar)
     first_table = first(grammar)
+    productions = grammar.productions
 
     #initalize the table to contain only the empty sets
     follow_table = {non_term : set() for non_term in grammar.nonTerminals}
@@ -163,11 +164,43 @@ def follows(grammar):
     while has_changed:
         has_changed = False
 
-        #construct the new table for us to put additions to 
+        #construct the new table for us to put additions into 
         new_table = follow_table.copy()
         
         for non_term in grammar.nonTerminals:
-            pass
+            for M in productions:
+                for value in productions[M]:
+                    if non_term in value:
+                        #find the first instance
+                        idx = value.index(non_term)
+
+                        #then nothing follows and we can ignore this case
+                        if idx == len(value):
+                            continue
+                        
+                        # then we have a beta following the non-terminal
+                        beta = value[idx+1:]
+
+                        i = 0 
+                        while i < len(beta):
+                            #Add first[beta[i]] to follows(non_term)
+                            if beta[i] in first_table.keys():
+                                # if we're already a subset, we don't need to add
+                                # anything
+                                if not first_table[beta[i]] <= follow_table[non_term]:
+                                    has_changed = True
+                                    new_table[non_term] |= first_table[beta[i]]
+
+                            if beta[i] not in nullable_non_terms:
+                                break
+
+                            i += 1
+                        
+
+                        if not follow_table[M] <= follow_table[non_term]:
+                            has_changed = True
+                            # make follows(M) a subset of follows(non_term)
+                            new_table[M] |= follow_table[non_term]
 
         follow_table = new_table.copy()
     
@@ -175,11 +208,10 @@ def follows(grammar):
     
 if __name__ == '__main__':
     x = Grammar('./testdata/html.txt')
-    first_dict = first(x)
+    first_dict = follows(x)
     for i in first_dict:
         print i, ':', first_dict[i]
 
-    
 
 
     
