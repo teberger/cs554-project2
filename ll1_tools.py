@@ -151,8 +151,6 @@ def betas_following(non_terminal, productions):
                             ret_set[k] = [beta]
                     
                     symbol_list = beta
-
-    
     return ret_set
 
 def follows(grammar):
