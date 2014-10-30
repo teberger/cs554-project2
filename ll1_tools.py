@@ -131,6 +131,30 @@ def first(grammar):
 
     return prev_table
 
+def betas_following(non_terminal, productions):
+    ret_set = {}
+
+    for k,v in productions.iteritems():
+        for rhs in v:
+            if non_terminal in rhs:
+                symbol_list = rhs
+                while non_terminal in symbol_list:
+                    idx = symbol_list.index(non_terminal)
+                    beta = []
+
+                    if idx + 1 < len(symbol_list):
+                        beta = symbol_list[idx + 1:]
+
+                        if k in ret_set:
+                            ret_set[k].append(beta)
+                        else:
+                            ret_set[k] = [beta]
+                    
+                    symbol_list = beta
+
+    
+    return ret_set
+
 def follows(grammar):
     '''Calculates all terminals that can follow a given non terminal.
     Follows is a closure calculated by the following rules:
@@ -168,49 +192,42 @@ def follows(grammar):
         new_table = follow_table.copy()
         
         for non_term in grammar.nonTerminals:
-            for M in productions:
-                for value in productions[M]:
-                    if non_term in value:
-                        #find the first instance
-                        idx = value.index(non_term)
+            betas_following_term = betas_following(non_term, productions)
+            
+            for M in betas_following_term.keys():
+                for beta in betas_following_term[M]:
+                    i = 0
+                    while i < len(beta):
+                        beta_term = beta[i]
 
-                        #then nothing follows and we can ignore this case
-                        if idx == len(value):
-                            continue
-                        
-                        # then we have a beta following the non-terminal
-                        beta = value[idx+1:]
+                        if beta_term in grammar.nonTerminals:
+                            if not first_table[beta_term] <= follow_table[non_term]:
+                                has_changed = True
+                                new_table[non_term] |= first_table[beta_term]
+                        elif beta_term not in follow_table[non_term]:
+                            has_changed = True
+                            new_table[non_term] |= set([beta_term])
 
-                        i = 0 
-                        while i < len(beta):
-                            #Add first[beta[i]] to follows(non_term)
-                            if beta[i] in first_table.keys():
-                                # if we're already a subset, we don't need to add
-                                # anything
-                                if not first_table[beta[i]] <= follow_table[non_term]:
-                                    has_changed = True
-                                    new_table[non_term] |= first_table[beta[i]]
+                        if beta_term not in nullable_non_terms:
+                            break
 
-                            if beta[i] not in nullable_non_terms:
-                                break
-
-                            i += 1
-                        
-
+                        i += 1
+                    
+                    if i == len(beta):
                         if not follow_table[M] <= follow_table[non_term]:
                             has_changed = True
-                            # make follows(M) a subset of follows(non_term)
-                            new_table[M] |= follow_table[non_term]
+                            new_table[M] |= follows_table[non_term]
 
         follow_table = new_table.copy()
     
     return follow_table
     
 if __name__ == '__main__':
-    x = Grammar('./testdata/html.txt')
-    first_dict = follows(x)
-    for i in first_dict:
-        print i, ':', first_dict[i]
+    x = Grammar('./testdata/unhygienic.txt')
+    print follows(x)
+#    first_dict = follows(x)
+#    for i in first_dict:
+#        print i, ':', first_dict[i]
 
 
 
