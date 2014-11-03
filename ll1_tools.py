@@ -179,6 +179,7 @@ def follows(grammar):
     #initalize the table to contain only the empty sets
     follow_table = {non_term : set() for non_term in grammar.nonTerminals}
     #add the EOF symbol for the start state
+    #TODO: Correct symbol for eof? What should we do here?
     follow_table[grammar.start].add('$')
 
     has_changed = True
@@ -241,11 +242,10 @@ def follows(grammar):
     return follow_table
     
 if __name__ == '__main__':
-    x = Grammar('./testdata/unhygienic.txt')
-    print follows(x)
-#    first_dict = follows(x)
-#    for i in first_dict:
-#        print i, ':', first_dict[i]
+    x = Grammar('./testdata/unreachable.txt')
+    f = follows(x)
+    for i in f:
+        print i, ':', f[i]
 
 
 
