@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-from cfg import *
 
 class ParseTable:
     """ Represents a parse table. """

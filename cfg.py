@@ -61,6 +61,7 @@ class Grammar:
 
         self.productions = dict()
         self.nonTerminals = set()
+        self.terminals = set()
         self.start = ""
 
         if grammar is not None:
@@ -80,6 +81,14 @@ class Grammar:
             # Add all of the productions to the grammar.
             for production in productions:
                 self.addProduction(production.lhs, production.rhs)
+
+            # Determine set of terminals by finding set of all symbols, then
+            # subtracting the intersection of all symbols with non-terminals.
+            for righthandsides in self.productions.values():
+                for rhs in righthandsides:
+                    self.terminals |= set(rhs)
+
+            self.terminals = self.terminals - self.nonTerminals
 
     def addProduction(self, lhs, rhs):
         """Adds a production to the grammar. If the production's LHS already
@@ -145,7 +154,7 @@ def Generating(productions):
 
     # Build list of all productions with generating left-hand-sides,
     # but remove any that have non-generating variables in their
-    # right-hand-side.
+    # right-hand-side.x+y
     unproductive = nonTerms - productive
     return [p for p in productions if
             p.lhs in productive
