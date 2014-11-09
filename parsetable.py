@@ -8,6 +8,7 @@ class ParseTable:
     def __init__(self, grammar):
         self.table = dict()
         self.isLl1 = True
+        self.grammar = grammar
 
         first_dict = first(grammar)
         follows_dict = follows(grammar)
@@ -40,3 +41,20 @@ class ParseTable:
                         if len(self.table[lhs][EOF]) > 1:
                             self.isLl1 = False
 
+    def str(self):
+        # Print row headers
+        for header in self.grammar.terminals:
+            print ',' + header,
+        print ''
+
+        # Print rows
+        for row in self.table:
+            print row,
+            for col in self.table[row]:
+                print ',' + col,
+        print ''
+
+if __name__ == "__main__":
+    g = Grammar("testdata/ll1.txt")
+    pt = ParseTable(g)
+    print pt

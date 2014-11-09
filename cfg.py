@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 """ Data structures for representing context-free grammars over ASCII alphabets
     and parsing functions to read grammar descriptions in files. The grammars
@@ -28,6 +29,7 @@ pyp_Production = Group(pyp_Symbol.setResultsName("lhs") +
 pyp_Grammar = ZeroOrMore(pyp_Production)
 
 EOF = '\0'
+EPSILON = 'ε'
 
 class Production:
     """ Represents a production. """
