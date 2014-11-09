@@ -133,6 +133,20 @@ def first(grammar):
         prev_table[terminal] = set(terminal)
 
     return prev_table
+    
+def create_first_from_list(first_table, nullables, symbols):
+    '''
+    '''
+    if len(symbols) == 0: return set()
+
+    first_set = first_table[symbols[0]]
+    
+    i = 1
+    while i < len(symbols) and symbols[i] in nullables:
+        first_set |= first_table[symbols[i]]
+        i += 1
+
+    return first_set
 
 def betas_following(non_terminal, productions):
     ret_set = {}
