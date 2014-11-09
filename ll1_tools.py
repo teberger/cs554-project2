@@ -1,4 +1,4 @@
-from cfg import Grammar
+from cfg import Grammar, EOF
 
 def nullable(grammar):
     '''
@@ -196,8 +196,7 @@ def follows(grammar):
     #initalize the table to contain only the empty sets
     follow_table = {non_term : set() for non_term in grammar.nonTerminals}
     #add the EOF symbol for the start state
-    #TODO: Correct symbol for eof? What should we do here?
-    follow_table[grammar.start].add('$')
+    follow_table[grammar.start].add(EOF)
 
     has_changed = True
     #iterate until all sets have not changed
