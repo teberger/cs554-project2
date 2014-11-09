@@ -96,9 +96,11 @@ def first(grammar):
         for non_term in grammar.nonTerminals:
             for rhs in productions[non_term]:
                 # if we have an epsilon, add it to the first set of this
-                if [] == rhs and set(EPSILON) not in prev_table[non_term]:
-                    has_changed = True
-                    new_table[non_term] = prev_table[non_term] | set(EPSILON)
+                if len(rhs) == 0:
+                    if EPSILON not in prev_table[non_term]:
+                        has_changed = True
+                        new_table[non_term] |= set(EPSILON)
+                    continue
 
                 # we already handled this above
                 if rhs[0] in grammar.terminals:

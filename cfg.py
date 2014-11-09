@@ -29,7 +29,7 @@ pyp_Production = Group(pyp_Symbol.setResultsName("lhs") +
 pyp_Grammar = ZeroOrMore(pyp_Production)
 
 EOF = '\0'
-EPSILON = 'ε'
+EPSILON = '`'
 
 class Production:
     """ Represents a production. """
