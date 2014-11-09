@@ -27,6 +27,7 @@ pyp_Production = Group(pyp_Symbol.setResultsName("lhs") +
                        Group(pyp_List).setResultsName("rhs"))
 pyp_Grammar = ZeroOrMore(pyp_Production)
 
+EOF = '\0'
 
 class Production:
     """ Represents a production. """
