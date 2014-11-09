@@ -1,4 +1,4 @@
-from cfg import Grammar
+from cfg import Grammar, EPSILON
 
 def nullable(grammar):
     '''
@@ -79,10 +79,10 @@ def first(grammar):
     #   non_terminal -> terminal
     #to start the algorithm off
     for non_term in grammar.nonTerminals:
-        for N in productions[non_term]:
-            if [] == N: continue
-            if N[0] not in grammar.nonTerminals:
-                prev_table[non_term].add(N[0])
+        for rhs in productions[non_term]:
+            if [] == rhs: continue
+            if rhs[0] not in grammar.nonTerminals:
+                prev_table[non_term].add(rhs[0])
 
     has_changed = True
 
@@ -94,9 +94,13 @@ def first(grammar):
 
         for non_term in grammar.nonTerminals:
             for rhs in productions[non_term]:
-                # if we have an epsilon, ignore it. It is the
-                # equivalent of adding the empty set.
-                if [] == rhs or rhs[0] not in grammar.nonTerminals:
+                # if we have an epsilon, add it to the first set of this
+                if [] == rhs and set(EPSILON) not in prev_table[non_term]:
+                    has_changed = True
+                    new_table[non_term] = prev_table[non_term] | set(EPSILON)
+
+                # we already handled this above
+                if rhs[0] in grammar.terminals:
                     continue
 
                 first = rhs[0]
@@ -259,10 +263,10 @@ def follows(grammar):
     return follow_table
     
 if __name__ == '__main__':
-    x = Grammar('./testdata/unreachable.txt')
-    f = follows(x)
-    for i in f:
-        print i, ':', f[i]
+    x = Grammar('./testdata/test.txt')
+    fs = first(x)
+    print x.productions
+
 
 
 
