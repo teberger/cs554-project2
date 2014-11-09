@@ -137,7 +137,7 @@ def first(grammar):
         prev_table = new_table.copy()
 
     for terminal in grammar.terminals:
-        prev_table[terminal] = set(terminal)
+        prev_table[terminal] = set([terminal])
 
     return prev_table
     
