@@ -21,14 +21,14 @@ from pyparsing import *
 
 # pyparsing definitions for above-specified context-free grammar.
 pyp_Arrow = Keyword("->").suppress()
-pyp_Symbol = Word(alphanums)
+pyp_Symbol = Word(printables)
 pyp_List = ZeroOrMore(~LineStart().leaveWhitespace() + Word(printables))
 pyp_Production = Group(pyp_Symbol.setResultsName("lhs") +
                        pyp_Arrow.suppress() +
                        Group(pyp_List).setResultsName("rhs"))
 pyp_Grammar = ZeroOrMore(pyp_Production)
 
-EOF = '\0'
+EOF = '~'
 EPSILON = '`'
 
 class Production:
@@ -103,6 +103,10 @@ class Grammar:
         :param list[str] rhs: Right-hand-side of the production.
 
         """
+        # Convert empty lists into epsilon character.
+        if not rhs:
+            rhs = EPSILON
+
         if lhs in self.productions:
             self.productions[lhs].append(rhs)
         else:

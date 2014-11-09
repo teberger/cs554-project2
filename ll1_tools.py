@@ -99,7 +99,7 @@ def first(grammar):
                 if len(rhs) == 0:
                     if EPSILON not in prev_table[non_term]:
                         has_changed = True
-                        new_table[non_term] |= set(EPSILON)
+                        new_table[non_term] |= set([EPSILON])
                     continue
 
                 # we already handled this above
@@ -196,14 +196,21 @@ def follows(grammar):
                                                  that can follow any given
                                                  non-terminal
     '''
+    #add the EOF symbol for the start state
+    # S' -> S EOF
+    rhs = [grammar.start, EOF]
+    lhs = grammar.start + "'"
+    grammar.addProduction(lhs, rhs)
+    grammar.start = lhs
+    grammar.terminals.add(EOF)
+    grammar.terminals.add(EPSILON)
+
     nullable_non_terms = nullable(grammar)
     first_table = first(grammar)
     productions = grammar.productions
 
     #initalize the table to contain only the empty sets
     follow_table = {non_term : set() for non_term in grammar.nonTerminals}
-    #add the EOF symbol for the start state
-    follow_table[grammar.start].add(EOF)
 
     has_changed = True
     #iterate until all sets have not changed
@@ -218,46 +225,30 @@ def follows(grammar):
             #get the dictionary of all {lhs : 'beta' values} (lists of
             #expressions following the non-terminal)n
             betas_following_term = betas_following(non_term, productions)
-            
+
             #Get the lhs of the production, call it M (like in the book)
             for M in betas_following_term.keys():
                 #For every beta, calculate the following...
                 for beta in betas_following_term[M]:
-                    i = 0
-                    while i < len(beta):
-                        #iterating from the first to the last term in the list of
-                        #symbols 
-                        beta_term = beta[i]
 
-                        # Case where beta is a non-terminal:
-                        # Follows(non_term) = first(beta) U follows(non_term)
-                        if beta_term in grammar.nonTerminals:
-                            # if we see a value that's not in follows(non_term), add
-                            # it and set the changed flag to True
-                            if not first_table[beta_term] <= follow_table[non_term]:
-                                has_changed = True
-                                new_table[non_term] |= first_table[beta_term]
-                        # Case where beta term is a terminal and we
-                        # haven't seen it before add the non-terminal
-                        # to the follows set and set the changed
-                        # flag to True
-                        elif beta_term not in follow_table[non_term]:
-                            has_changed = True
-                            new_table[non_term] |= set([beta_term])
+                    m = create_first_from_list(first_table, nullable_non_terms, beta)
 
-                        # if the beta_term is not nullable, we are
-                        # done with this list of symbols
-                        if beta_term not in nullable_non_terms:
-                            break
+                    if not m <= follow_table[non_term]:
 
-                        i += 1
-                    
+                        has_changed = True
+                        new_table[non_term] |= m
+
+                    is_nullable = True
+                    for term in beta:
+                        if term not in nullable_non_terms:
+                            is_nullable = False
+
+                    if is_nullable:
                     # case where all of the symbol list is nullable, in which
                     # we need to say follows(M) = follows(M) U follows(non_term)
-                    if i == len(beta):
                         if not follow_table[M] <= follow_table[non_term]:
                             has_changed = True
-                            new_table[M] |= follows_table[non_term]
+                            new_table[non_term] |= follow_table[M]
 
         #update our table to point to the new one
         follow_table = new_table.copy()
@@ -265,9 +256,9 @@ def follows(grammar):
     return follow_table
     
 if __name__ == '__main__':
-    x = Grammar('./testdata/test.txt')
-    fs = first(x)
-    print x.productions
+    x = Grammar('./testdata/ll1.txt')
+    fs = follows(x)
+    print fs
 
 
 
