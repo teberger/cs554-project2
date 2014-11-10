@@ -27,7 +27,7 @@ def nullable(grammar):
         for non_term in productions:
             #if epsilon is in the rhs already,
             #the production is nullable
-            if [] in productions[non_term]:
+            if EPSILON in productions[non_term]:
                 nullable.add(non_term)
             else:
                 isNullable = False
@@ -135,16 +135,13 @@ def first(grammar):
                     has_changed = True
 
         prev_table = new_table.copy()
-
-    for terminal in grammar.terminals:
-        prev_table[terminal] = set([terminal])
-
     return prev_table
     
 def create_first_from_list(first_table, nullables, symbols):
-    '''
-    '''
     if len(symbols) == 0: return set()
+    #if it starts with a terminal, return the singleton set
+    if symbols[0] not in first_table.keys():
+        return set([symbols[0]])
 
     first_set = first_table[symbols[0]]
     
@@ -158,8 +155,8 @@ def create_first_from_list(first_table, nullables, symbols):
 def betas_following(non_terminal, productions):
     ret_set = {}
 
-    for k,v in productions.iteritems():
-        for rhs in v:
+    for lhs,all_rhs in productions.iteritems():
+        for rhs in all_rhs:
             if non_terminal in rhs:
                 symbol_list = rhs
                 while non_terminal in symbol_list:
@@ -169,10 +166,10 @@ def betas_following(non_terminal, productions):
                     if idx + 1 < len(symbol_list):
                         beta = symbol_list[idx + 1:]
 
-                        if k in ret_set:
-                            ret_set[k].append(beta)
+                        if lhs in ret_set:
+                            ret_set[lhs].append(beta)
                         else:
-                            ret_set[k] = [beta]
+                            ret_set[lhs] = [beta]
                     
                     symbol_list = beta
     return ret_set
@@ -181,7 +178,7 @@ def follows(grammar):
     '''Calculates all terminals that can follow a given non terminal.
     Follows is a closure calculated by the following rules:
     
-      given [M -> AN B] -> follows(N) = follows(N) U first(B)
+      given [M -> ANB] -> follows(N) = follows(N) U first(B)
                           if nullable(B) then
                             follows(M) = follows(M) U follows(N)
       given [M -> A N B1...A N B2...A N BX]
@@ -198,12 +195,11 @@ def follows(grammar):
     '''
     #add the EOF symbol for the start state
     # S' -> S EOF
+    previous_start = grammar.start
     rhs = [grammar.start, EOF]
     lhs = grammar.start + "'"
     grammar.addProduction(lhs, rhs)
     grammar.start = lhs
-    grammar.terminals.add(EOF)
-    grammar.terminals.add(EPSILON)
 
     nullable_non_terms = nullable(grammar)
     first_table = first(grammar)
@@ -223,22 +219,21 @@ def follows(grammar):
         #construct all the follow sets for every non-terminal
         for non_term in grammar.nonTerminals:
             #get the dictionary of all {lhs : 'beta' values} (lists of
-            #expressions following the non-terminal)n
+            #expressions following the non-terminal)
             betas_following_term = betas_following(non_term, productions)
 
             #Get the lhs of the production, call it M (like in the book)
             for M in betas_following_term.keys():
                 #For every beta, calculate the following...
                 for beta in betas_following_term[M]:
-
                     m = create_first_from_list(first_table, nullable_non_terms, beta)
 
                     if not m <= follow_table[non_term]:
-
                         has_changed = True
                         new_table[non_term] |= m
 
                     is_nullable = True
+
                     for term in beta:
                         if term not in nullable_non_terms:
                             is_nullable = False
@@ -252,15 +247,11 @@ def follows(grammar):
 
         #update our table to point to the new one
         follow_table = new_table.copy()
-    
+
+    #restore grammar to previous state
+    follow_table.__delitem__(grammar.start)
+    grammar.nonTerminals.remove(grammar.start)
+    grammar.productions.__delitem__(grammar.start)
+    grammar.start = previous_start
+
     return follow_table
-    
-if __name__ == '__main__':
-    x = Grammar('./testdata/ll1.txt')
-    fs = follows(x)
-    print fs
-
-
-
-
-    

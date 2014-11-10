@@ -84,12 +84,3 @@ class ParseTable:
             ret += "\n"
 
         return ret
-
-if __name__ == "__main__":
-    g = Grammar("testdata/ll1.txt")
-    fs = first(g)
-    fl = follows(g)
-    pt = ParseTable(g)
-    print fs, '\n'
-    print fl, '\n'
-    print pt

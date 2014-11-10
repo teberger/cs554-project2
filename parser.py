@@ -2,6 +2,7 @@ __author__ = 'Taylor'
 
 from parsetable import ParseTable
 from cfg import Grammar
+from ll1_tools import first, follows
 
 class Parser:
     '''
@@ -59,15 +60,16 @@ class Parser:
                              str(self.parse_stack[0:-1]) + " on terminal " + str(token))
 
         # push all symbols onto the stack
-        for symbol in production_to_follow[0]:
+        for symbol in production_to_follow[0][::-1]:
             self.parse_stack.append(symbol)
-
 
         #construct a node in the tree and attach all children parsed
         current_rose_tree_node = Rose_Tree(current_symbol, "")
 
         leftover = token_list
+
         for symbol in production_to_follow[0]:
+            print self.parse_stack[::-1]
             #this can never just return from an empty stack since we place
             #all symbols found on the stack before this. See lines 54 & 55
             parsed_tree_node, leftover = self.ll1_parse(current_rose_tree_node, leftover)
@@ -101,14 +103,3 @@ class Rose_Tree:
             ret += str(child)
 
         return ret
-
-if __name__ == '__main__':
-    g = Grammar('testdata/ll1_test.txt')
-    parser = Parser(g)
-    start_node = Rose_Tree("Program", "")
-    #simplest expression to parse
-    tokens = ['begin', 'id', ':=', '(', 'id', '+', 'id', ')', ';', 'end']
-    tree, ls = parser.ll1_parse(start_node, tokens)
-
-    print tree
-
