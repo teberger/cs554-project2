@@ -425,7 +425,187 @@ def follows(grammar):
 Where the function \verb{betas_following_term{ can be found in the full code for ll1\_tools.py in section~\ref{code:ll1_tools}. With all three closures calculated, we can now construct the parse table (defined in the following section~\ref{sec:ll1}).
 
 \section{LL1 Parse Table}
+Constructing the Parse Table using the first, follows, and nullable definitions becomes a straigtforward calculation of three situations. With an intially empty table $T$, an end of file character, \#, and for each production of the form $A \rightarrow \alpha$:
+
+\begin{align}
+T\left[A,t\right] &= \alpha, \quad \text{where,  } t \in \text{First}\left(\alpha\right) \\
+T\left[A,t\right] &= \alpha, \quad \text{where,  } \epsilon \in \text{First}\left(\alpha\right) \text{ and } t \in \text{Follows}\left(A\right) \\
+T\left[A,\text{\#}\right] &= \alpha, \quad \text{where,  } \epsilon \in \text{First}\left(\alpha\right) \text{ and \# } \in \text{Follows}\left(A\right)
+\end{align}
 \label{sec:ll1}
+
+We implemented the parse table as a separate class and is created by passing in a grammar into the class initializer. The table is built during the construction of the object and a flag is set inside the parse table if the grammar is ll1. The construction of the table is as follows:
+
+\begin{minted}[linenos=true]{python}
+class ParseTable:
+    """ Represents a parse table. """
+
+    def __init__(self, grammar):
+        self.table = dict()
+        self.isLl1 = True
+        self.grammar = grammar
+
+        first_dict = first(grammar)
+        follows_dict = follows(grammar)
+        nullables_set = nullable(grammar)
+
+        # Initialize all table cells to the empty list.
+        for nonTerminal in grammar.nonTerminals:
+            self.table[nonTerminal] = dict()
+            # also initialize the epsilon and eof characters
+            # to have empty cells as well
+            self.table[nonTerminal][EPSILON] = []
+            self.table[nonTerminal][EOF] = []
+            for terminal in grammar.terminals:
+                self.table[nonTerminal][terminal] = []
+
+        # Build the table.
+        for lhs in grammar.productions:
+            # All right hand sides of a production in the
+            # form: A -> alpha1 | alpha2 | alpha3 as a list
+            alphas = grammar.productions[lhs]
+
+            # For every right hand side above
+            for alpha in alphas:
+
+                #calculate First(alpha) using first dictionary and nullables
+                #this is First(alpha[0]) U First(alpha[i]) where i = 1 : len(alpha)
+                #and stop i when alpha[i] is not in nullables
+                first_of_alpha = create_first_from_list(first_dict, nullables_set, alpha)
+
+                # for all 't' that exist in First(alpha), where 't' is always
+                # a terminal
+                for t in first_of_alpha:
+                    #add this to the table for 't'
+                    self.table[lhs][t].append(alpha)
+
+                    # Check for multiple entries in cell - LL1 check.
+                    if len(self.table[lhs][t]) > 1:
+                        self.isLl1 = False
+
+                # Now, if EPSILON exists in First(alpha), then we have a couple
+                # other additions to make
+                if EPSILON in first_of_alpha:
+                    # For every terminal, t, in Follows(A), add an entry from [A][t] = alpha
+                    for t in follows_dict[lhs]:
+                        self.table[lhs][t].append(alpha)
+
+                        # Check for multiple entries in cell - LL1 check.
+                        if len(self.table[lhs][t]) > 1:
+                            self.isLl1 = False
+
+                    #Also, if EOF exists in Follows(A), then add entry: [A][EOF] = alpha
+                    if EOF in follows_dict[lhs]:
+                        self.table[lhs][EOF].append(alpha)
+                        # Check for multiple entries in cell - LL1 check.
+                        if len(self.table[lhs][EOF]) > 1:
+                            self.isLl1 = False
+\end{minted}
+
+As you can see on lines 45, 56, and 64, if at any point, the table
+entry is a list of length greater than 1 the grammar is not LL(1) and
+we set the flag to false.
+
+\subsection{LL(1) versus Strong LL(1)}
+\paragraph{}We have tried to find the difference between Strong LL(1)
+and LL(1) grammars in multiple references but there seems to be no
+consesus what it means to be a Strong LL(1) grammar. We chose to
+follow the definition in chapter 8 of the parsing book \emph{Parsing
+  Techniques} by Grune and Jacobs. The definition given is: if your
+language is LL(1) it is also Strong LL(1). This implies that if your
+language is Strong LL(1), it is also LL(1), meaning there is no
+difference between the two.
+
+\paragraph{}We're not sure if there is a more formal definition
+ somewhere, but we took a definition out of a recent textbook to be
+ formal enough.
+
+\section{Parser Construction}
+\label{sec:parser}
+\paragraph{}Regardless of whether or not a grammar is LL(1) or not,
+we still construct a parser for the grammar. However, if at any point
+the parser identifies the possibility of having two different parses
+by having more than one entry in the parse table, it fails fast by
+raising an error. The parser builds a Rose Tree as it consumes input
+where the children of any particular node are the sequence of tokens
+put on the parse stack (identified by the parse table).
+
+\paragraph{}The parser and LL(1) parse method are as follows:
+
+\begin{minted}[linenos=true]{python}
+class Parser:
+
+    def __init__(self, grammar=None):
+        #storing this just in case
+        self.grammar = grammar
+        #start the stack with just the start node
+        self.parse_stack = [grammar.start]
+        #construct the parse table
+        self.table = ParseTable(grammar).table
+
+    def ll1_parse(self, rose_tree, token_list):
+        ''' excluded for brevity '''
+
+        # if the stack is empty, return the current parse and leftover input
+        if not self.parse_stack:
+            return rose_tree, token_list
+
+        # if there's no tokens left and we are here, parse error
+        if not token_list:
+            raise ValueError("Unexpected EOF, current parse stack is:" + str(self.parse_stack.reverse()))
+
+        # Get the first symbol
+        current_symbol = self.parse_stack.pop()
+        # one token look-ahead
+        token = token_list[0]
+
+        #if we have a matching symbol and token, we can consume the input
+        if current_symbol in self.grammar.terminals:
+            leaf = Rose_Tree(current_symbol, token)
+            return leaf, token_list[1:]
+
+        #else we have a non-terminal, we must continue with the rewrite
+        #returns a list of possible productions that should follow
+        production_to_follow = self.table[current_symbol][token]
+
+        # if empty production to follow, unexpected terminal found:
+        if not production_to_follow:
+            raise ValueError("Unexpected terminal, " + str(token) + ", found.")
+
+        # we can't handle this in LL1 style parsing
+        if len(production_to_follow) > 1:
+
+            print production_to_follow
+            raise ValueError("Too many possible parses for LL1, this is non-deterministic. "
+                             "Please check your grammar. Current parse: " +
+                             str(self.parse_stack[0:-1]) + " on terminal " + str(token))
+
+        # push all symbols onto the stack
+        for symbol in production_to_follow[0]:
+            self.parse_stack.append(symbol)
+
+
+        #construct a node in the tree and attach all children parsed
+        current_rose_tree_node = Rose_Tree(current_symbol, "")
+
+        leftover = token_list
+        for symbol in production_to_follow[0]:
+            #this can never just return from an empty stack since we place
+            #all symbols found on the stack before this. See lines 54 & 55
+            parsed_tree_node, leftover = self.ll1_parse(current_rose_tree_node, leftover)
+
+            # append as a child
+            current_rose_tree_node.children.append(parsed_tree_node)
+
+            # point back to parent
+            parsed_tree_node.parent = current_rose_tree_node
+
+        #finished parsing for this node completely, return the node and any leftover input
+        return current_rose_tree_node, leftover
+\end{minted}
+
+\section{Team Composition}
+...
 
 \section{Full Code}
 \label{code}
@@ -439,4 +619,13 @@ Where the function \verb{betas_following_term{ can be found in the full code for
 \label{code:ll1_tools}
 \inputminted{python}{./ll1_tools.py}
 \newpage
+
+\subsection{parsetable.py}
+\label{code:parsetable}
+\inputminted{python}{./parsetable.py}
+\newpage
+
+\subsection{parser.py}
+\label{code:parser}
+\inputminted{python}{./parser.py}
 \end{document}
