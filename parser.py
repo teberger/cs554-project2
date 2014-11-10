@@ -103,14 +103,12 @@ class Rose_Tree:
         return ret
 
 if __name__ == '__main__':
-    g = Grammar('./testdata/ll1.txt')
+    g = Grammar('testdata/ll1_test.txt')
     parser = Parser(g)
-
-#    print ParseTable(g)
-
     start_node = Rose_Tree("Program", "")
     #simplest expression to parse
-    tree, ls = parser.ll1_parse(start_node, ['(', 'int', ')'])
+    tokens = ['begin', 'id', ':=', '(', 'id', '+', 'id', ')', ';', 'end']
+    tree, ls = parser.ll1_parse(start_node, tokens)
 
     print tree
 

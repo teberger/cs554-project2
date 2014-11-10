@@ -1,0 +1,13 @@
+S -> begin SL end
+S -> id := E ;
+SL -> S Z
+Z -> S Z
+Z ->
+E -> T Y
+Y -> + T Y
+Y ->
+T -> P X
+X -> * T
+X ->
+P -> ( E )
+P -> id
