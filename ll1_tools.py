@@ -200,47 +200,47 @@ def follows(grammar):
     nullable_set = nullable(grammar)
     follows_table = {non_term : set() for non_term in grammar.nonTerminals}
 
+    #add EOF to the follows set for the start of the follows table
     follows_table[grammar.start] |= set([EOF])
+
+    #iterate until there are no changes. Construct the closure.
     changed = True
     while changed:
         changed = False
 
+        # We need to construct the follows table for each non-terminal
         for non_terminal in grammar.nonTerminals:
+            #Get all productions of the form X -> a A beta
             beta_productions = betas_following(non_terminal, grammar.productions)
 
+            #Iterate over all productions of the previous form. LHS refers to X
             for lhs in beta_productions:
+                #This is for each specific 'beta' that could be of the form X -> a A beta
                 for beta in beta_productions[lhs]:
+                    # if there are no productions following 'A', then do this..
                     if beta == []:
+                        #Add Follows(X) to Follows(A)
                         for elem in follows_table[lhs]:
                             if elem not in follows_table[non_terminal]:
                                 changed = True
                                 follows_table[non_terminal].add(elem)
                         continue
 
+                    #Construct First(beta)
                     first_of_beta = create_first_from_list(first_table, nullable_set, beta)
 
+                    #Add all elements in First(beta) to Follows(A)
                     for elem in (first_of_beta - set([EPSILON])):
                         if elem not in follows_table[non_terminal]:
                             changed = True
                             follows_table[non_terminal].add(elem)
 
+                    #If 'beta' is nullable, then do this...
                     if EPSILON in first_of_beta:
+                        #Add each element in Follows(X) to Follows(A)
                         for elem in follows_table[lhs]:
                             if elem not in follows_table[non_terminal]:
                                 changed = True
                                 follows_table[non_terminal].add(elem)
 
     return follows_table
-
-
-if __name__ == '__main__':
-    x = Grammar('./testdata/ll1_test.txt')
-    firsts = first(x)
-
-    # for i in firsts:
-    #     print i, ':', firsts[i]
-    # exit(1)
-    ft = follows(x)
-
-    for i in ft:
-        print i, ':', ft[i]
