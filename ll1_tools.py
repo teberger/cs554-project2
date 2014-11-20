@@ -103,7 +103,7 @@ def first(grammar):
                     continue
 
                 # we already handled this above
-                if rhs[0] in grammar.terminals:
+                if rhs[0] in grammar.terminals or rhs[0] == EPSILON:
                     continue
 
                 first = rhs[0]

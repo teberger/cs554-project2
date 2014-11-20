@@ -89,6 +89,8 @@ class Grammar:
             # subtracting the intersection of all symbols with non-terminals.
             for righthandsides in self.productions.values():
                 for rhs in righthandsides:
+                    if rhs[0] == EPSILON:
+                        continue
                     self.terminals |= set(rhs)
 
             self.terminals = self.terminals - self.nonTerminals

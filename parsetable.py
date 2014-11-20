@@ -20,8 +20,8 @@ class ParseTable:
             self.table[nonTerminal] = dict()
             # also initialize the epsilon and eof characters
             # to have empty cells as well
-            self.table[nonTerminal][EPSILON] = []
-            self.table[nonTerminal][EOF] = []
+            #self.table[nonTerminal][EPSILON] = []
+            #self.table[nonTerminal][EOF] = []
             for terminal in grammar.terminals:
                 self.table[nonTerminal][terminal] = []
 
@@ -42,12 +42,13 @@ class ParseTable:
                 # for all 't' that exist in First(alpha), where 't' is always
                 # a terminal
                 for t in first_of_alpha:
-                    #add this to the table for 't'
-                    self.table[lhs][t].append(alpha)
+                    if not t == EPSILON:
+                        #add this to the table for 't'
+                        self.table[lhs][t].append(alpha)
 
-                    # Check for multiple entries in cell - LL1 check.
-                    if len(self.table[lhs][t]) > 1:
-                        self.isLl1 = False
+                        # Check for multiple entries in cell - LL1 check.
+                        if len(self.table[lhs][t]) > 1:
+                            self.isLl1 = False
 
                 # Now, if EPSILON exists in First(alpha), then we have a couple
                 # other additions to make

@@ -1,8 +1,7 @@
 __author__ = 'Taylor'
 
 from parsetable import ParseTable
-from cfg import Grammar
-from ll1_tools import first, follows
+from cfg import Grammar, EPSILON
 
 class Parser:
     '''
@@ -17,7 +16,7 @@ class Parser:
         #construct the parse table
         self.table = ParseTable(grammar).table
 
-    def ll1_parse(self, rose_tree, token_list):
+    def ll1_parse(self, token_list):
         '''
         :param rose_tree: a Rose_Tree of the current node we are parsing
         :param token_list: a list of terminal tokens to parse into a tree structure
@@ -27,7 +26,7 @@ class Parser:
 
         # if the stack is empty, return the current parse and leftover input
         if not self.parse_stack:
-            return rose_tree, token_list
+            return Rose_Tree('', ''), token_list
 
         # if there's no tokens left and we are here, parse error
         if not token_list:
@@ -35,6 +34,7 @@ class Parser:
 
         # Get the first symbol
         current_symbol = self.parse_stack.pop()
+
         # one token look-ahead
         token = token_list[0]
 
@@ -49,18 +49,19 @@ class Parser:
 
         # if empty production to follow, unexpected terminal found:
         if not production_to_follow:
-            raise ValueError("Unexpected terminal, " + str(token) + ", found.")
+            raise ValueError("Unexpected terminal, " + str(token) + ", found.", str(self.parse_stack))
 
         # we can't handle this in LL1 style parsing
         if len(production_to_follow) > 1:
 
-            print production_to_follow
             raise ValueError("Too many possible parses for LL1, this is non-deterministic. "
                              "Please check your grammar. Current parse: " +
-                             str(self.parse_stack[0:-1]) + " on terminal " + str(token))
+                             str(self.parse_stack[::-1]) + " on terminal " + str(token))
 
         # push all symbols onto the stack
         for symbol in production_to_follow[0][::-1]:
+            if symbol == EPSILON:
+                continue
             self.parse_stack.append(symbol)
 
         #construct a node in the tree and attach all children parsed
@@ -69,10 +70,11 @@ class Parser:
         leftover = token_list
 
         for symbol in production_to_follow[0]:
-            print self.parse_stack[::-1]
+            if symbol == EPSILON:
+                continue
             #this can never just return from an empty stack since we place
             #all symbols found on the stack before this. See lines 54 & 55
-            parsed_tree_node, leftover = self.ll1_parse(current_rose_tree_node, leftover)
+            parsed_tree_node, leftover = self.ll1_parse(leftover)
 
             # append as a child
             current_rose_tree_node.children.append(parsed_tree_node)
@@ -103,3 +105,15 @@ class Rose_Tree:
             ret += str(child)
 
         return ret
+
+
+if __name__ == '__main__':
+    x = Grammar('./testdata/ll1_test.txt')
+    parser = Parser(x)
+
+    print ParseTable(x)
+
+    root, _ = parser.ll1_parse(['begin', 'id', ':=', '(', 'id', '+', 'id', ')', ';', 'end'])
+
+    for c in root.children:
+        print c.symbol
