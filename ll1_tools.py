@@ -137,17 +137,19 @@ def first(grammar):
         prev_table = new_table.copy()
     return prev_table
     
-def create_first_from_list(first_table, nullables, symbols):
-    if len(symbols) == 0: return set()
-    #if it starts with a terminal, return the singleton set
-    if symbols[0] not in first_table.keys():
-        return set([symbols[0]])
+def create_first_from_list(first_table, nullables, symbol_list):
+    if len(symbol_list) == 0: return set([EPSILON])
 
-    first_set = first_table[symbols[0]]
-    
+    #if it starts with a terminal, return the singleton set
+    if symbol_list[0] not in first_table.keys():
+        return set([symbol_list[0]])
+
+    first_set = set().union(first_table[symbol_list[0]])
+
     i = 1
-    while i < len(symbols) and symbols[i] in nullables:
-        first_set |= first_table[symbols[i]]
+    while i < len(symbol_list) and symbol_list[i - 1] in nullables:
+        print 'adding: ', first_table[symbol_list[i]]
+        first_set.union(first_table[symbol_list[i]])
         i += 1
 
     return first_set
@@ -163,7 +165,7 @@ def betas_following(non_terminal, productions):
                     idx = symbol_list.index(non_terminal)
                     beta = []
 
-                    if idx + 1 < len(symbol_list):
+                    if idx < len(symbol_list):
                         beta = symbol_list[idx + 1:]
 
                         if lhs in ret_set:
@@ -193,65 +195,52 @@ def follows(grammar):
                                                  that can follow any given
                                                  non-terminal
     '''
-    #add the EOF symbol for the start state
-    # S' -> S EOF
-    previous_start = grammar.start
-    rhs = [grammar.start, EOF]
-    lhs = grammar.start + "'"
-    grammar.addProduction(lhs, rhs)
-    grammar.start = lhs
 
-    nullable_non_terms = nullable(grammar)
     first_table = first(grammar)
-    productions = grammar.productions
+    nullable_set = nullable(grammar)
+    follows_table = {non_term : set() for non_term in grammar.nonTerminals}
 
-    #initalize the table to contain only the empty sets
-    follow_table = {non_term : set() for non_term in grammar.nonTerminals}
+    follows_table[grammar.start] |= set([EOF])
+    changed = True
+    while changed:
+        changed = False
 
-    has_changed = True
-    #iterate until all sets have not changed
-    while has_changed:
-        has_changed = False
+        for non_terminal in grammar.nonTerminals:
+            beta_productions = betas_following(non_terminal, grammar.productions)
 
-        #construct the new table for us to put additions into 
-        new_table = follow_table.copy()
-        
-        #construct all the follow sets for every non-terminal
-        for non_term in grammar.nonTerminals:
-            #get the dictionary of all {lhs : 'beta' values} (lists of
-            #expressions following the non-terminal)
-            betas_following_term = betas_following(non_term, productions)
+            for lhs in beta_productions:
+                for beta in beta_productions[lhs]:
+                    if beta == []:
+                        for elem in follows_table[lhs]:
+                            if elem not in follows_table[non_terminal]:
+                                changed = True
+                                follows_table[non_terminal].add(elem)
+                        continue
 
-            #Get the lhs of the production, call it M (like in the book)
-            for M in betas_following_term.keys():
-                #For every beta, calculate the following...
-                for beta in betas_following_term[M]:
-                    m = create_first_from_list(first_table, nullable_non_terms, beta)
+                    first_of_beta = create_first_from_list(first_table, nullable_set, beta)
 
-                    if not m <= follow_table[non_term]:
-                        has_changed = True
-                        new_table[non_term] |= m
+                    for elem in (first_of_beta - set([EPSILON])):
+                        if elem not in follows_table[non_terminal]:
+                            changed = True
+                            follows_table[non_terminal].add(elem)
 
-                    is_nullable = True
+                    if EPSILON in first_of_beta:
+                        for elem in follows_table[lhs]:
+                            if elem not in follows_table[non_terminal]:
+                                changed = True
+                                follows_table[non_terminal].add(elem)
 
-                    for term in beta:
-                        if term not in nullable_non_terms:
-                            is_nullable = False
+    return follows_table
 
-                    if is_nullable:
-                    # case where all of the symbol list is nullable, in which
-                    # we need to say follows(M) = follows(M) U follows(non_term)
-                        if not follow_table[M] <= follow_table[non_term]:
-                            has_changed = True
-                            new_table[non_term] |= follow_table[M]
 
-        #update our table to point to the new one
-        follow_table = new_table.copy()
+if __name__ == '__main__':
+    x = Grammar('./testdata/ll1_test.txt')
+    firsts = first(x)
 
-    #restore grammar to previous state
-    follow_table.__delitem__(grammar.start)
-    grammar.nonTerminals.remove(grammar.start)
-    grammar.productions.__delitem__(grammar.start)
-    grammar.start = previous_start
+    # for i in firsts:
+    #     print i, ':', firsts[i]
+    # exit(1)
+    ft = follows(x)
 
-    return follow_table
+    for i in ft:
+        print i, ':', ft[i]
