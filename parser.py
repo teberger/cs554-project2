@@ -3,6 +3,8 @@ __author__ = 'Taylor'
 from parsetable import ParseTable
 from cfg import Grammar, EPSILON
 
+import networkx as NX
+
 class Parser:
     '''
     Data structure wrapping a grammar and parse table together
@@ -106,6 +108,17 @@ class Rose_Tree:
 
         return ret
 
+    def to_networkx_graph(self):
+        g = NX.Graph()
+        g.add_node(self.symbol,{'value':self.value})
+        for child in self.children:
+            subgraph = child.to_networkx_graph()
+            g.add_nodes_from(subgraph.nodes())
+            g.add_edges_from(subgraph.edges())
+
+            g.add_edge(self.symbol, child.symbol)
+
+        return g
 
 if __name__ == '__main__':
     x = Grammar('./testdata/ll1_test.txt')
@@ -115,5 +128,5 @@ if __name__ == '__main__':
 
     root, _ = parser.ll1_parse(['begin', 'id', ':=', '(', 'id', '+', 'id', ')', ';', 'end'])
 
-    for c in root.children:
-        print c.symbol
+    graph = root.to_networkx_graph()
+    NX.draw(graph)
