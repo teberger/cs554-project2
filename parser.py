@@ -3,7 +3,10 @@ __author__ = 'Taylor'
 from parsetable import ParseTable
 from cfg import Grammar, EPSILON
 
+
 import networkx as NX
+import matplotlib
+import pydot
 
 class Parser:
     '''
@@ -108,29 +111,24 @@ class Rose_Tree:
 
         return ret
 
-    def append_to_networkx_graph(self, graph, parent):
+    def pydot_append(self, graph, node_id):
+        #note: don't use ':' as a divider here, it causes
+        #strange things to happen when drawing with the pydot tool
+        graph.add_node(pydot.Node(('%d= "%s"' % (node_id, self.symbol))))
 
-        node_id = len(graph.nodes())
-        graph.add_node(node_id,{'symbol':self.symbol, 'value':self.value})
+        c_num = node_id + 1
+        for c in self.children:
+            graph.add_edge(pydot.Edge('%d= "%s"' % (node_id, self.symbol), 
+                                      '%d= "%s"' % (c_num, c.symbol)))
+            _, c_num = c.pydot_append(graph, c_num)
 
-        if parent != 0:
-            graph.add_edge(parent, node_id)
-
-        for child in self.children:
-            child.append_to_networkx_graph(graph, node_id)
-
-        return graph
+        return graph, c_num
 
 if __name__ == '__main__':
     x = Grammar('./testdata/ll1_test.txt')
     parser = Parser(x)
-
-    print ParseTable(x)
-
     root, _ = parser.ll1_parse(['begin', 'id', ':=', '(', 'id', '+', 'id', ')', ';', 'end'])
 
-    g = NX.Graph()
-    graph = root.append_to_networkx_graph(g, 0)
-    NX.draw(graph)
-
-
+    graph = pydot.Dot('Parse Tree', graph_type='digraph')
+    g, _ = root.pydot_append(graph, 0)
+    g.write_png('./testdata/test.png')
