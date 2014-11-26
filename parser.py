@@ -108,17 +108,18 @@ class Rose_Tree:
 
         return ret
 
-    def to_networkx_graph(self):
-        g = NX.Graph()
-        g.add_node(self.symbol,{'value':self.value})
+    def append_to_networkx_graph(self, graph, parent):
+
+        node_id = len(graph.nodes())
+        graph.add_node(node_id,{'symbol':self.symbol, 'value':self.value})
+
+        if parent != 0:
+            graph.add_edge(parent, node_id)
+
         for child in self.children:
-            subgraph = child.to_networkx_graph()
-            g.add_nodes_from(subgraph.nodes())
-            g.add_edges_from(subgraph.edges())
+            child.append_to_networkx_graph(graph, node_id)
 
-            g.add_edge(self.symbol, child.symbol)
-
-        return g
+        return graph
 
 if __name__ == '__main__':
     x = Grammar('./testdata/ll1_test.txt')
@@ -128,5 +129,8 @@ if __name__ == '__main__':
 
     root, _ = parser.ll1_parse(['begin', 'id', ':=', '(', 'id', '+', 'id', ')', ';', 'end'])
 
-    graph = root.to_networkx_graph()
+    g = NX.Graph()
+    graph = root.append_to_networkx_graph(g, 0)
     NX.draw(graph)
+
+
