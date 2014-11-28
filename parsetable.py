@@ -20,8 +20,8 @@ class ParseTable:
             self.table[nonTerminal] = dict()
             # also initialize the epsilon and eof characters
             # to have empty cells as well
-            #self.table[nonTerminal][EPSILON] = []
-            #self.table[nonTerminal][EOF] = []
+            self.table[nonTerminal][EPSILON] = []
+            self.table[nonTerminal][EOF] = []
             for terminal in grammar.terminals:
                 self.table[nonTerminal][terminal] = []
 
@@ -43,8 +43,9 @@ class ParseTable:
                 # a terminal
                 for t in first_of_alpha:
                     if not t == EPSILON:
-                        #add this to the table for 't'
-                        self.table[lhs][t].append(alpha)
+                        #add this to the table for 't', don't add it twice
+                        if alpha not in self.table[lhs][t]:
+                            self.table[lhs][t].append(alpha)
 
                         # Check for multiple entries in cell - LL1 check.
                         if len(self.table[lhs][t]) > 1:
@@ -55,7 +56,8 @@ class ParseTable:
                 if EPSILON in first_of_alpha:
                     # For every terminal, t, in Follows(A), add an entry from [A][t] = alpha
                     for t in follows_dict[lhs]:
-                        self.table[lhs][t].append(alpha)
+                        if alpha not in self.table[lhs][t]:
+                            self.table[lhs][t].append(alpha)
 
                         # Check for multiple entries in cell - LL1 check.
                         if len(self.table[lhs][t]) > 1:
@@ -63,7 +65,8 @@ class ParseTable:
 
                     #Also, if EOF exists in Follows(A), then add entry: [A][EOF] = alpha
                     if EOF in follows_dict[lhs]:
-                        self.table[lhs][EOF].append(alpha)
+                        if alpha not in self.table[lhs][EOF]:
+                            self.table[lhs][EOF].append(alpha)
                         # Check for multiple entries in cell - LL1 check.
                         if len(self.table[lhs][EOF]) > 1:
                             self.isLl1 = False

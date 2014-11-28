@@ -3,9 +3,6 @@ __author__ = 'Taylor'
 from parsetable import ParseTable
 from cfg import Grammar, EPSILON
 
-
-import networkx as NX
-import matplotlib
 import pydot
 
 class Parser:
@@ -31,12 +28,13 @@ class Parser:
         '''
 
         # if the stack is empty, return the current parse and leftover input
-        if not self.parse_stack:
+        if not self.parse_stack or self.parse_stack == None:
             return Rose_Tree('', ''), token_list
 
         # if there's no tokens left and we are here, parse error
-        if not token_list:
-            raise ValueError("Unexpected EOF, current parse stack is:" + str(self.parse_stack.reverse()))
+        if not token_list or token_list == None:
+            raise ValueError("Unexpected EOF, current parse stack is: " + str(self.parse_stack[::-1]) + ' and ' +
+                             'tokens are ' + str(token_list))
 
         # Get the first symbol
         current_symbol = self.parse_stack.pop()
@@ -59,7 +57,7 @@ class Parser:
 
         # we can't handle this in LL1 style parsing
         if len(production_to_follow) > 1:
-
+            print current_symbol, token, production_to_follow
             raise ValueError("Too many possible parses for LL1, this is non-deterministic. "
                              "Please check your grammar. Current parse: " +
                              str(self.parse_stack[::-1]) + " on terminal " + str(token) + " @ " + str(token_value))

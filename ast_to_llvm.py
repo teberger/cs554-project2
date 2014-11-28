@@ -1,7 +1,7 @@
-from parser import Parser
+
 from cfg import Grammar
-from llvm import *
-from ll1_tools import (first,follows)
+from ast_parser import Parser
+import pydot
 
 def ast_to_llvm(ast):
     '''
@@ -18,24 +18,25 @@ def ast_to_llvm(ast):
              executable
     '''
 
-    
     pass
 
 if __name__ == '__main__':
     g = Grammar('./testdata/homework1_grammar.txt')
     x = Parser(g)
     
-    for c in follows(g):
-        print c, ' -> ', follows(g)[c]
-    
-
-    x.ll1_parse([('while', 'while'), 
-                 ('not', 'not'), 
+    root, _ = x.ll1_parse([('while', 'while'),
+                 ('not', 'not'),
                  ('true','true'), 
                  ('do','do'), 
                  ('var', 'x'),
                  ('aop', '+'),
                  ('num','123'),
-                 ('od', 'od')
+                 ('od', 'od'),
+                 ('\0', '\0')
                 ])
+
+    graph = pydot.Dot('Parse Tree', graph_type='digraph')
+    g, _ = root.pydot_append(graph, 0)
+    g.write_png('./testdata/test.png')
+
     
