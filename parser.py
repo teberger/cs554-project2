@@ -24,7 +24,8 @@ class Parser:
     def ll1_parse(self, token_list):
         '''
         :param rose_tree: a Rose_Tree of the current node we are parsing
-        :param token_list: a list of terminal tokens to parse into a tree structure
+        :param token_list: a list of pairs of terminal tokens and their
+                           associated values to parse into a tree structure
         :return: RoseTree, [tokens]: the RoseTree is the AST of the parse and the
                                      list of tokens are the unconsumed tokens
         '''
@@ -41,11 +42,11 @@ class Parser:
         current_symbol = self.parse_stack.pop()
 
         # one token look-ahead
-        token = token_list[0]
+        token, token_value = token_list[0]
 
         #if we have a matching symbol and token, we can consume the input
         if current_symbol in self.grammar.terminals:
-            leaf = Rose_Tree(current_symbol, token)
+            leaf = Rose_Tree(current_symbol, token_value)
             return leaf, token_list[1:]
 
         #else we have a non-terminal, we must continue with the rewrite
@@ -54,14 +55,14 @@ class Parser:
 
         # if empty production to follow, unexpected terminal found:
         if not production_to_follow:
-            raise ValueError("Unexpected terminal, " + str(token) + ", found.", str(self.parse_stack))
+            raise ValueError("Unexpected terminal, " + str(token) + " @ " + str(token_value)  + ", found.", str(self.parse_stack))
 
         # we can't handle this in LL1 style parsing
         if len(production_to_follow) > 1:
 
             raise ValueError("Too many possible parses for LL1, this is non-deterministic. "
                              "Please check your grammar. Current parse: " +
-                             str(self.parse_stack[::-1]) + " on terminal " + str(token))
+                             str(self.parse_stack[::-1]) + " on terminal " + str(token) + " @ " + str(token_value))
 
         # push all symbols onto the stack
         for symbol in production_to_follow[0][::-1]:
@@ -114,12 +115,12 @@ class Rose_Tree:
     def pydot_append(self, graph, node_id):
         #note: don't use ':' as a divider here, it causes
         #strange things to happen when drawing with the pydot tool
-        graph.add_node(pydot.Node(('%d= "%s"' % (node_id, self.symbol))))
+        graph.add_node(pydot.Node(('%d= "%s@%s"' % (node_id, self.symbol, self.value))))
 
         c_num = node_id + 1
         for c in self.children:
-            graph.add_edge(pydot.Edge('%d= "%s"' % (node_id, self.symbol), 
-                                      '%d= "%s"' % (c_num, c.symbol)))
+            graph.add_edge(pydot.Edge('%d= "%s@%s"' % (node_id, self.symbol, self.value), 
+                                      '%d= "%s@%s"' % (c_num, c.symbol, c.value)))
             _, c_num = c.pydot_append(graph, c_num)
 
         return graph, c_num
@@ -127,7 +128,16 @@ class Rose_Tree:
 if __name__ == '__main__':
     x = Grammar('./testdata/ll1_test.txt')
     parser = Parser(x)
-    root, _ = parser.ll1_parse(['begin', 'id', ':=', '(', 'id', '+', 'id', ')', ';', 'end'])
+    root, _ = parser.ll1_parse([('begin', 'begin'), 
+                                ('id', 'x'), 
+                                (':=', ':='),
+                                ('(', '('), 
+                                ('id', 'y'),
+                                ('+', '+'),
+                                ('id', 'z'),
+                                (')', ')'),
+                                (';', ';'),
+                                ('end', 'end')])
 
     graph = pydot.Dot('Parse Tree', graph_type='digraph')
     g, _ = root.pydot_append(graph, 0)

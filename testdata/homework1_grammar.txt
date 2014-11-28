@@ -1,0 +1,67 @@
+S -> Var := A S'
+S -> skip S'
+S -> if B then S else S fi S'
+S -> while B do S od S'
+S -> ( S ) S'
+S' -> ; S S'
+S' -> 
+A -> Var A'
+A -> Num A'
+A' -> Aop A A'
+A' -> 
+B -> true B'
+B -> false B'
+B -> not B B'
+B -> A Relop A B'
+B' -> Bop B B'
+B' -> 
+Aop -> + 
+Aop -> - 
+Aop -> *
+Bop -> &
+Bop -> |
+Relop -> <
+Relop -> >
+Relop -> >=
+Relop -> <=
+Relop -> =
+Var -> V1 Var
+Var -> V1
+V1 -> a
+V1 -> b
+V1 -> c
+V1 -> d
+V1 -> e
+V1 -> f
+V1 -> g
+V1 -> h
+V1 -> i
+V1 -> j
+V1 -> k
+V1 -> l
+V1 -> m
+V1 -> n
+V1 -> o
+V1 -> p
+V1 -> q
+V1 -> r
+V1 -> s
+V1 -> t
+V1 -> u
+V1 -> v
+V1 -> w
+V1 -> x
+V1 -> y
+V1 -> z
+Num -> N1 Num
+Num -> N1
+N1 -> 1
+N1 -> 2
+N1 -> 3
+N1 -> 4
+N1 -> 5
+N1 -> 6
+N1 -> 7
+N1 -> 8
+N1 -> 9
+N1 -> 0
