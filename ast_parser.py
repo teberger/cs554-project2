@@ -33,14 +33,17 @@ class Parser:
 
         # if there's no tokens left and we are here, parse error
         if not token_list or token_list == None:
-            raise ValueError("Unexpected EOF, current parse stack is: " + str(self.parse_stack[::-1]) + ' and ' +
-                             'tokens are ' + str(token_list))
+            #raise ValueError("Unexpected EOF, current parse stack is: " + str(self.parse_stack[::-1]) + ' and ' +
+            #                 'tokens are ' + str(token_list))
+            token = '\0'
+            token_value = '\0'
+        else:
+            # one token look-ahead
+            token, token_value = token_list[0]
+
 
         # Get the first symbol
         current_symbol = self.parse_stack.pop()
-
-        # one token look-ahead
-        token, token_value = token_list[0]
 
         #if we have a matching symbol and token, we can consume the input
         if current_symbol in self.grammar.terminals:
@@ -57,8 +60,7 @@ class Parser:
 
         # we can't handle this in LL1 style parsing
         if len(production_to_follow) > 1:
-            print current_symbol, token, production_to_follow
-            raise ValueError("Too many possible parses for LL1, this is non-deterministic. "
+            print str("Warning, not an LL1 parse. Too many possible parses for LL1, this is non-deterministic. "
                              "Please check your grammar. Current parse: " +
                              str(self.parse_stack[::-1]) + " on terminal " + str(token) + " @ " + str(token_value))
 
@@ -113,12 +115,16 @@ class Rose_Tree:
     def pydot_append(self, graph, node_id):
         #note: don't use ':' as a divider here, it causes
         #strange things to happen when drawing with the pydot tool
-        graph.add_node(pydot.Node(('%d= "%s@%s"' % (node_id, self.symbol, self.value))))
+        my_name = '%d= "%s@%s"' % (node_id, self.symbol, self.value)
+        my_name = my_name.replace(':', '')
+        graph.add_node(pydot.Node(my_name))
 
         c_num = node_id + 1
         for c in self.children:
-            graph.add_edge(pydot.Edge('%d= "%s@%s"' % (node_id, self.symbol, self.value), 
-                                      '%d= "%s@%s"' % (c_num, c.symbol, c.value)))
+            their_name = '%d= "%s@%s"' % (c_num, c.symbol, c.value)
+            their_name = their_name.replace(':', '')
+            graph.add_edge(pydot.Edge(my_name, their_name))
+                                      
             _, c_num = c.pydot_append(graph, c_num)
 
         return graph, c_num

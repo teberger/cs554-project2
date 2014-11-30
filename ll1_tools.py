@@ -82,7 +82,7 @@ def first(grammar):
     for non_term in grammar.nonTerminals:
         for rhs in productions[non_term]:
             if [] == rhs: continue
-            if rhs[0] not in grammar.nonTerminals:
+            if rhs[0] in grammar.terminals or rhs[0] == EPSILON:
                 prev_table[non_term].add(rhs[0])
 
     has_changed = True
@@ -145,12 +145,9 @@ def create_first_from_list(first_table, nullables, symbol_list):
         return set([symbol_list[0]])
 
     first_set = set().union(first_table[symbol_list[0]])
-
-    i = 1
-    while i < len(symbol_list) and symbol_list[i - 1] in nullables:
-        print 'adding: ', first_table[symbol_list[i]]
-        first_set.union(first_table[symbol_list[i]])
-        i += 1
+    if symbol_list[0] in nullables:
+        recursive_set = create_first_from_list(first_table, nullables, symbol_list[1:])
+        first_set.union(recursive_set)
 
     return first_set
 

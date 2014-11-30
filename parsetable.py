@@ -71,6 +71,10 @@ class ParseTable:
                         if len(self.table[lhs][EOF]) > 1:
                             self.isLl1 = False
 
+        if not self.isLl1:
+            print "Warning, grammar is not LL1 table was constructed "\
+                  "anway."
+
     def __str__(self):
         """ Output to CSV format for viewing with a spreadsheet program. """
         ret = ""

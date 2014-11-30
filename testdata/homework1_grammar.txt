@@ -2,15 +2,13 @@ S -> var := A S'
 S -> skip S'
 S -> if B then S else S fi S'
 S -> while B do S od S'
-S -> ( S ) S'
 S' -> ; S S'
 S' ->
 A -> var A'
 A -> num A'
-A -> ( A )
+A -> ( A ) A'
 A' -> aop A A'
 A' ->
-B -> ( B )
 B -> true B'
 B -> false B'
 B -> not B B'
