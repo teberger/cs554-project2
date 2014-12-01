@@ -14,8 +14,7 @@ def simplify_ast(ast):
 
     while loops and if statements are condensed, and sequential
     statements (S ; S) are put into one serial block of
-    code. Arithmetic statements are organized in order of precedence
-    (PEDMAS).
+    code. 
 
     :param ast: a RoseTree that represents the AST of the parse
                 of the arithmetic language defined in the 
