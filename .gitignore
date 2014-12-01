@@ -1,6 +1,9 @@
 #emacs saves
 *.*~
 
+#ignoring example files
+addnprint.py
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
